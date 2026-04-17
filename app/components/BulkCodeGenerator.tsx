@@ -2,20 +2,37 @@
 
 import { useState } from 'react'
 import { bulkGenerateCodes } from '../admin/admin-actions'
+import BulkPrintCodes from './BulkPrintCodes'
+
+type CodeMeta = {
+  code_string: string
+  coin_value: number
+  expires_at: string | null
+}
 
 export default function BulkCodeGenerator() {
   const [isLoading, setIsLoading] = useState(false)
   const [generatedCodes, setGeneratedCodes] = useState<string[]>([])
+  const [generatedMeta, setGeneratedMeta] = useState<CodeMeta[]>([])
   const [copied, setCopied] = useState(false)
 
   async function handleSubmit(formData: FormData) {
     setIsLoading(true)
     setGeneratedCodes([])
+    setGeneratedMeta([])
     const result = await bulkGenerateCodes(formData)
     setIsLoading(false)
 
     if (result && 'codes' in result && result.codes) {
       setGeneratedCodes(result.codes)
+      const coinValue = parseInt(formData.get('coinValue') as string)
+      const daysValid = parseInt(formData.get('daysValid') as string)
+      const expiresAt = new Date(Date.now() + daysValid * 86400000).toISOString()
+      setGeneratedMeta(result.codes.map(c => ({
+        code_string: c,
+        coin_value: coinValue,
+        expires_at: expiresAt,
+      })))
     }
   }
 
@@ -42,20 +59,13 @@ export default function BulkCodeGenerator() {
       </div>
 
       <form action={handleSubmit} className="flex flex-col gap-4">
-        {/* Count + Coins row */}
         <div className="grid grid-cols-3 gap-3">
           <div>
             <label className="block text-xs font-black uppercase tracking-wider mb-1.5" style={{ color: '#6B7FA3' }}>
               No. of Codes
             </label>
             <input
-              type="number"
-              name="count"
-              placeholder="e.g. 20"
-              min="1"
-              max="100"
-              required
-              defaultValue="10"
+              type="number" name="count" placeholder="e.g. 20" min="1" max="100" required defaultValue="10"
               className="w-full rounded-xl border-2 px-3 py-3 text-sm font-black outline-none transition-all text-center"
               style={{ borderColor: '#D1DCF0', background: '#F5F8FF', color: '#1A2B4B' }}
             />
@@ -65,12 +75,7 @@ export default function BulkCodeGenerator() {
               Coins Each
             </label>
             <input
-              type="number"
-              name="coinValue"
-              placeholder="e.g. 50"
-              min="1"
-              max="1000000"
-              required
+              type="number" name="coinValue" placeholder="e.g. 50" min="1" max="1000000" required
               className="w-full rounded-xl border-2 px-3 py-3 text-sm font-black outline-none transition-all text-center"
               style={{ borderColor: '#D1DCF0', background: '#F5F8FF', color: '#1A2B4B' }}
             />
@@ -80,27 +85,20 @@ export default function BulkCodeGenerator() {
               Days Valid
             </label>
             <input
-              type="number"
-              name="daysValid"
-              defaultValue="30"
-              min="1"
-              max="365"
-              required
+              type="number" name="daysValid" defaultValue="30" min="1" max="365" required
               className="w-full rounded-xl border-2 px-3 py-3 text-sm font-black outline-none transition-all text-center"
               style={{ borderColor: '#D1DCF0', background: '#F5F8FF', color: '#1A2B4B' }}
             />
           </div>
         </div>
 
-        {/* Format preview */}
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl" style={{ background: '#F5F8FF', border: '1px dashed #D1DCF0' }}>
           <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#6B7FA3' }}>Format preview:</span>
           <span className="font-black font-mono text-sm tracking-widest" style={{ color: '#1A2B4B' }}>CH3-4JX &nbsp; AB7-2KP &nbsp; QZ9-5MN</span>
         </div>
 
         <button
-          type="submit"
-          disabled={isLoading}
+          type="submit" disabled={isLoading}
           className="w-full rounded-xl py-4 font-black text-white text-sm uppercase tracking-wide transition-all hover:opacity-90 hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           style={{ background: 'linear-gradient(135deg, #1A2B4B, #2d4a7a)', boxShadow: '0 4px 14px rgba(26,43,75,0.3)' }}
         >
@@ -129,13 +127,16 @@ export default function BulkCodeGenerator() {
                 {generatedCodes.length} Codes Generated!
               </span>
             </div>
-            <button
-              onClick={copyAll}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black uppercase tracking-wide transition-all hover:scale-105"
-              style={{ background: copied ? '#22c55e' : '#C8102E', color: 'white' }}
-            >
-              {copied ? '✓ Copied!' : '📋 Copy All'}
-            </button>
+            <div className="flex items-center gap-2">
+              <BulkPrintCodes codes={generatedMeta} />
+              <button
+                onClick={copyAll}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black uppercase tracking-wide transition-all hover:scale-105"
+                style={{ background: copied ? '#22c55e' : '#C8102E', color: 'white' }}
+              >
+                {copied ? '✓ Copied!' : '📋 Copy All'}
+              </button>
+            </div>
           </div>
 
           {/* Codes grid */}

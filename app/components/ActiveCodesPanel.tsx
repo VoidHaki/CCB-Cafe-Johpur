@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { deleteCode } from '../admin/admin-actions'
+import PrintCodeSlip from './PrintCodeSlip'
 
 type Code = {
   id: string
@@ -21,7 +22,6 @@ export default function ActiveCodesPanel({ initialCodes }: { initialCodes: Code[
     const formData = new FormData()
     formData.append('codeId', codeId)
     await deleteCode(formData)
-    // Optimistically remove from UI
     setCodes(prev => prev.filter(c => c.id !== codeId))
     setDeletingId(null)
     setConfirmId(null)
@@ -43,8 +43,6 @@ export default function ActiveCodesPanel({ initialCodes }: { initialCodes: Code[
             <p className="text-xs" style={{ color: '#6B7FA3' }}>{codes.length} unclaimed code{codes.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
-
-        {/* Live count badge */}
         <span className="rounded-full px-3 py-1 text-xs font-black text-white" style={{ background: codes.length > 0 ? '#1A2B4B' : '#9CA3AF' }}>
           {codes.length}
         </span>
@@ -84,10 +82,17 @@ export default function ActiveCodesPanel({ initialCodes }: { initialCodes: Code[
               </div>
             </div>
 
-            {/* Delete controls */}
-            <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+            {/* Actions: print + delete */}
+            <div className="flex items-center gap-1 ml-3 flex-shrink-0">
+              {/* Print button — always visible */}
+              <PrintCodeSlip
+                codeString={code.code_string}
+                coinValue={code.coin_value}
+                expiresAt={code.expires_at}
+              />
+
+              {/* Delete controls */}
               {confirmId === code.id ? (
-                // Confirm state
                 <>
                   <button
                     onClick={() => setConfirmId(null)}
@@ -112,7 +117,6 @@ export default function ActiveCodesPanel({ initialCodes }: { initialCodes: Code[
                   </button>
                 </>
               ) : (
-                // Normal delete button
                 <button
                   onClick={() => setConfirmId(code.id)}
                   className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110"
@@ -129,10 +133,9 @@ export default function ActiveCodesPanel({ initialCodes }: { initialCodes: Code[
         ))}
       </div>
 
-      {/* Tip */}
       {codes.length > 0 && (
         <p className="mt-4 text-xs text-center" style={{ color: '#9CA3AF' }}>
-          Click the 🗑️ icon on any code to delete it
+          Click 🖨️ to print a slip, or 🗑️ to delete a code
         </p>
       )}
     </div>

@@ -3,6 +3,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import RedeemForm from './components/RedeemForm'
 import AnimatedWallet from './components/AnimatedWallet'
+import RequestCodeButton from './components/RequestCodeButton'
 
 export default async function HomePage() {
   const cookieStore = await cookies()
@@ -87,6 +88,7 @@ export default async function HomePage() {
             {/* Redemption Form Card */}
             <div className="rounded-2xl border-2 p-8 shadow-lg" style={{ background: 'white', borderColor: '#D1DCF0' }}>
               <RedeemForm />
+              <RequestCodeButton />
             </div>
 
             {/* How It Works Card */}

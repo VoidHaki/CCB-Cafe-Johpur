@@ -3,6 +3,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { generateCode } from './admin-actions'
 import AdminNotifier from '../components/AdminNotifier'
+import AdminCodeRequestNotifier from '../components/AdminCodeRequestNotifier'
 import BulkCodeGenerator from '../components/BulkCodeGenerator'
 import ActiveCodesPanel from '../components/ActiveCodesPanel'
 
@@ -15,7 +16,7 @@ export default async function AdminPage() {
   const supabase = await createClient()
   const { data: user } = await supabase.from('users').select('*').eq('id', userId).single()
 
-  if (user?.email !== 'Premsingh.ccd11@gmail.com') {
+  if (user?.email?.trim().toLowerCase() !== 'premsingh.ccd11@gmail.com') {
     return (
       <div className="flex items-center justify-center min-h-[60vh]" style={{ background: '#EEF2F7' }}>
         <div className="text-center p-12 rounded-2xl bg-white border-2 shadow-lg" style={{ borderColor: '#C8102E' }}>
@@ -60,6 +61,7 @@ export default async function AdminPage() {
   return (
     <>
       <AdminNotifier initialTicketCount={initialTickets || 0} />
+      <AdminCodeRequestNotifier />
 
       <div style={{ background: '#EEF2F7', minHeight: '100vh' }}>
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -83,7 +85,6 @@ export default async function AdminPage() {
                 </a>
               </div>
 
-              {/* Stats */}
               <div className="flex gap-4 sm:flex-col">
                 <div className="flex-1 flex items-center justify-center rounded-2xl p-5 text-center text-white shadow-xl"
                   style={{ background: '#C8102E', minWidth: '140px' }}>
@@ -105,18 +106,12 @@ export default async function AdminPage() {
             {/* ── MAIN GRID ── */}
             <div className="grid gap-8 lg:grid-cols-12 items-start">
 
-              {/* LEFT COLUMN — code tools */}
               <div className="space-y-6 lg:col-span-5">
-
-                {/* 1. Single code form */}
                 <div className="rounded-2xl border-2 bg-white p-8 shadow-sm" style={{ borderColor: '#D1DCF0' }}>
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
-                      style={{ background: '#FEF2F2' }}>✏️</div>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0" style={{ background: '#FEF2F2' }}>✏️</div>
                     <div>
-                      <h2 className="font-black text-xl uppercase tracking-tight" style={{ color: '#1A2B4B', fontFamily: 'Georgia, serif' }}>
-                        Custom Code
-                      </h2>
+                      <h2 className="font-black text-xl uppercase tracking-tight" style={{ color: '#1A2B4B', fontFamily: 'Georgia, serif' }}>Custom Code</h2>
                       <p className="text-xs" style={{ color: '#6B7FA3' }}>Create a specific promo code</p>
                     </div>
                   </div>
@@ -149,28 +144,21 @@ export default async function AdminPage() {
                   </form>
                 </div>
 
-                {/* 2. Bulk generator (client component) */}
                 <BulkCodeGenerator />
-
-                {/* 3. Active codes with delete (client component) */}
                 <ActiveCodesPanel initialCodes={activeCodes || []} />
               </div>
 
-              {/* RIGHT COLUMN — redemption history */}
               <div className="rounded-2xl border-2 bg-white p-8 shadow-sm lg:col-span-7" style={{ borderColor: '#D1DCF0' }}>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#C8102E' }}>
                     <span className="text-white text-sm">🎟️</span>
                   </div>
                   <div>
-                    <h2 className="font-black text-xl uppercase tracking-tight" style={{ color: '#1A2B4B', fontFamily: 'Georgia, serif' }}>
-                      Redemption History Log
-                    </h2>
+                    <h2 className="font-black text-xl uppercase tracking-tight" style={{ color: '#1A2B4B', fontFamily: 'Georgia, serif' }}>Redemption History Log</h2>
                     <p className="text-xs" style={{ color: '#6B7FA3' }}>Items handed out at the counter</p>
                   </div>
                 </div>
 
-                {/* Table header */}
                 <div className="hidden sm:grid grid-cols-4 gap-4 px-4 py-3 rounded-xl mt-5 mb-3 text-xs font-black uppercase tracking-widest"
                   style={{ background: '#1A2B4B', color: 'white' }}>
                   <span>Date &amp; Time</span>
